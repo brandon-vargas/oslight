@@ -108,7 +108,17 @@ struct thread {
 	/* VFS */
 	bool t_did_reserve_buffers;	/* reserve_buffers() in effect */
 
-	/* add more here as needed */
+/******CODE ADDED FROM HERE*******************************************************/
+														//A status to indicate if the child is complete
+														//		Child will set when it is terminating
+	//unsigned int t_status;			//		Parent will check for the status
+	struct lock *t_lock;			//needed to protect
+	struct wchan *t_wchan;		//needed for the parent to sleep and wait
+	struct cv *t_cv;					//for the parent to be waken up when child terminates
+	struct thread *t_parent;	//       \(0*0)/
+	struct thread *t_child;		//
+/*****CODE ADDED TO HERE*********************************************************/
+
 };
 
 /*
@@ -171,5 +181,10 @@ void schedule(void);
  */
 void thread_consider_migration(void);
 
+/*
+*thread_join() goal: the parent use the function to wait for a child to complete
+*/
+
+void thread_join(void);
 
 #endif /* _THREAD_H_ */

@@ -71,10 +71,16 @@ void V(struct semaphore *);
  *
  * The name field is for easier debugging. A copy of the name is
  * (should be) made internally.
+ *poop poop poop
  */
 struct lock {
-        char *lk_name;
-        // add what you need here
+        char *lk_name;                //name of lock
+        struct thread *lk_thread;     //owner
+        struct wchan *lk_wchan;       //a queue for processes to wait
+        struct spinlock lk_spinlock;  //protects all the feilds:
+        volatile bool lk_flag;    //flag indicating whether it is locked
+
+        //"Note that flag and owner can be combined into one"
         // (don't forget to mark things volatile as needed)
 };
 
@@ -113,7 +119,9 @@ bool lock_do_i_hold(struct lock *);
 
 struct cv {
         char *cv_name;
-        // add what you need here
+        struct wchan *cv_wchan;         //a queue for processes to wait in
+        struct spinlock cv_spinlock;    //spinlock to protect the queue
+
         // (don't forget to mark things volatile as needed)
 };
 

@@ -274,3 +274,22 @@ threadtest3(int nargs, char **args)
 	}
 	return 0;
 }
+
+int
+threadtest4(int nargs, char ** args)
+{
+	//setup();
+	//int i = 0;
+	if (nargs==1) {
+			//int result = thread_fork("FUNCTION",NULL,name,NULL,i);
+			//thread_join();
+			kprintf("\nHELLO FRIENDS! I TRIED TO IMPLEMENT A TEST BUT COULD NOT MANAGE. \nMY ATTEMPT IS FOUND IN \"threadtest4\" for ");
+	}
+	kprintf("%s command\n\n",args[0]);
+	return 0;
+}
+
+/*static
+void name() {
+	kprintf("HELLO ");
+}*/

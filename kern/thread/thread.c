@@ -150,9 +150,52 @@ thread_create(const char *name)
 	thread->t_did_reserve_buffers = false;
 
 	/* If you add to struct thread, be sure to initialize here */
+	/*NEED TO ADD THREAD CODE HERE*/
+	//thread->t_status = 0;
+	thread->t_lock = NULL;
+	thread->t_wchan = NULL;
+	thread->t_cv = NULL;
+	thread->t_parent = NULL;
+	thread->t_child = NULL;
 
 	return thread;
 }
+
+/*
+Goal: The parent use the function to wiat for a child to complete
+									Thread_join
+1)Parent at the time of forking
+			Set all new member fields when forking a new thread
+2)Parent at the time of joining
+			Acquire the lock
+			In a loop
+						Check if the child is complete
+						Wait on the CV for the status to change
+			Release the lock
+			Return the status of the terminated child
+3)Child at the time of terminating
+			Acquire the lock
+						Set the completion status
+						Signal the CV
+			Release the lock
+4)You are welcome to use semaphore,
+  which will be an easy modification from the example threadjointest functions
+*/
+/*void thread_join(void)
+{
+
+	lock_acquire(curthread->t_lock);
+
+	while(curthread->t_status == 1)	//			!= NULL
+	{
+		//curthread->t_cv
+		cv_wait(curthread->t_cv, curthread->t_lock);
+	}
+	lock_release(curthread->t_lock);
+
+	//return curthread->t_status; FOR EXTRA CREDIT!!!!
+}*/
+
 
 /*
  * Create a CPU structure. This is used for the bootup CPU and
@@ -769,6 +812,9 @@ thread_startup(void (*entrypoint)(void *data1, unsigned long data2),
 	thread_exit();
 }
 
+
+
+
 /*
  * Cause the current thread to exit.
  *
@@ -799,10 +845,21 @@ thread_exit(void)
 	/* Check the stack guard band. */
 	thread_checkstack(cur);
 
+	/*********************CODE ADDED FROM HERE**************************/
+		if(cur->t_child != NULL)
+		{
+			lock_acquire(cur->t_lock);
+					cur->t_child = NULL;
+					cv_signal(cur->t_cv, cur->t_lock);
+			lock_release(cur->t_lock);
+		}
+	/**********************CODE ADDED TO HERE**************************/
+
 	/* Interrupts off on this processor */
         splhigh();
 	thread_switch(S_ZOMBIE, NULL, NULL);
 	panic("braaaaaaaiiiiiiiiiiinssssss\n");
+
 }
 
 /*
@@ -1214,4 +1271,40 @@ interprocessor_interrupt(void)
 
 	curcpu->c_ipi_pending = 0;
 	spinlock_release(&curcpu->c_ipi_lock);
+}
+
+/*
+Goal: The parent use the function to wiat for a child to complete
+									Thread_join
+1)Parent at the time of forking
+			Set all new member fields when forking a new thread
+2)Parent at the time of joining
+			Acquire the lock
+			In a loop
+						Check if the child is complete
+						Wait on the CV for the status to change
+			Release the lock
+			Return the status of the terminated child
+3)Child at the time of terminating
+			Acquire the lock
+						Set the completion status
+						Signal the CV
+			Release the lock
+4)You are welcome to use semaphore,
+  which will be an easy modification from the example threadjointest functions
+*/
+void thread_join()
+{
+
+	lock_acquire(curthread->t_lock);
+
+	while(curthread->t_child != NULL)	//			!= NULL
+	{
+		//curthread->t_cv
+		cv_wait(curthread->t_cv, curthread->t_lock);
+	}
+	lock_release(curthread->t_lock);
+
+	kprintf("WORLD");
+	//return curthread->t_status; FOR EXTRA CREDIT!!!!
 }
